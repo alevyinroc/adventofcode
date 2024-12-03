@@ -1067,14 +1067,18 @@ $InputReadings | Foreach-Object {
     if (!$IsUnsafe) {
         $PossiblySafe.Add($PSItem) | Out-Null;
         for ($j=1;$j -lt $Readings.Length;$j++){
-            if ([System.Math]::Abs($Readings[$i] - $Readings[$i-1]) -gt 3) {
-                Write-Verbose "$PSItem unsafe! Too big a jump";
+            if ([System.Math]::Abs($Readings[$j] - $Readings[$j-1]) -gt 3) {
+                Write-Verbose "$($Readings[$j - 1])";
+                Write-Verbose "$($Readings[$j])"
+                Write-Verbose "Reading count is $($Readings.Length)"
+                Write-Verbose "$PSItem unsafe! $([System.Math]::Abs($Readings[$j] - $Readings[$j-1])) is too big a jump";
                 $IsUnsafe =$true;
                 break;
             }
         }
     }
     if (!$IsUnsafe) {
+        Write-Verbose "$PSItem added";
         $SafeReadings.Add($PSItem)|Out-Null;
     }
 }
