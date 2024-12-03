@@ -36,6 +36,7 @@ Analyze the unusual data from the engineers. How many reports are safe?
 #>
 $InputReadings = @(
 "1 2 4 7 9 8"
+    , "1 5 6 13 20"
 ,"43 44 47 49 49"
 ,"6 7 9 11 13 14 18"
 ,"34 35 38 39 42 48"
@@ -133,7 +134,6 @@ $InputReadings = @(
 ,"17 21 23 26 33 36 38 37"
 ,"79 83 85 92 93 95 95"
 ,"35 39 46 47 51"
-,"1 5 6 13 20"
 ,"71 76 78 81 82 84"
 ,"33 38 41 42 43 41"
 ,"75 82 85 88 91 92 94 94"
@@ -1036,32 +1036,47 @@ $InputReadings = @(
 ,"17 20 23 25 26 29 31"
 ,"85 86 89 92 94"
 );
-
+$VerbosePreference = "Continue";
 $PossiblySafe = New-Object -TypeName System.Collections.ArrayList;
+$SafeReadings = New-Object -TypeName System.Collections.ArrayList;
 $InputReadings | Foreach-Object {
-    $Readings = $PSItem -Split ' ';
+    [int[]]$Readings = ($PSItem -Split ' ');
     $IsUnsafe = $false;
-    if ($Readings[0] -lt $Readings[1]){
+    if ($Readings[0] -lt $Readings[1]) {
         for ($i=2;$i -lt $Readings.Length;$i++){
-            if ($Readings[$i] -gt $Readings[$i-1]){
+            if ($Readings[$i - 1] -ge $Readings[$i] ) {
                 $IsUnsafe = $true;
+                Write-Verbose "$PSItem is unsafe! Increase broke"
                 break;
             }
         }
     }
     if ($Readings[0] -gt $Readings[1]){
-        for ($i = 2; $i -gt $Readings.Length; $i++) {
-            if ($Readings[$i] -lt $Readings[$i - 1]) {
+        for ($i = 2; $i -lt $Readings.Length; $i++) {
+            if ($Readings[$i - 1] -le $Readings[$i]) {
                 $IsUnsafe = $true;
+                Write-Verbose "$PSItem is unsafe! Decrease broke"
                 break;
             }
         }
     }
     if ($Readings[0] -eq $Readings[1]){
         $IsUnsafe = $true;
+        Write-Verbose "$PSItem is unsafe! Consecutive values"
     }
     if (!$IsUnsafe) {
         $PossiblySafe.Add($PSItem) | Out-Null;
+        for ($j=1;$j -lt $Readings.Length;$j++){
+            if ([System.Math]::Abs($Readings[$i] - $Readings[$i-1]) -gt 3) {
+                Write-Verbose "$PSItem unsafe! Too big a jump";
+                $IsUnsafe =$true;
+                break;
+            }
+        }
+    }
+    if (!$IsUnsafe) {
+        $SafeReadings.Add($PSItem)|Out-Null;
     }
 }
-$PossiblySafe;
+$PossiblySafe.Count;
+$SafeReadings.Count;
